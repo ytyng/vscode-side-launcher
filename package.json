@@ -2,7 +2,7 @@
   "name": "side-launcher",
   "displayName": "Side Launcher",
   "description": "Launchier in sidebar",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.102.0"
   },
@@ -35,7 +35,9 @@
               "type": {
                 "type": "string",
                 "default": "shell",
-                "enum": ["shell"],
+                "enum": [
+                  "shell"
+                ],
                 "description": "Task type (currently only 'shell' is supported)"
               },
               "command": {
@@ -43,7 +45,10 @@
                 "description": "Command to execute"
               }
             },
-            "required": ["label", "command"],
+            "required": [
+              "label",
+              "command"
+            ],
             "additionalProperties": false
           }
         }
@@ -75,7 +80,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "update-version": "node scripts/update-version.js"
   },
   "devDependencies": {
     "@types/vscode": "^1.102.0",
