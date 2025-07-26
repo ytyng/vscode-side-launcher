@@ -18,6 +18,37 @@
         "title": "Hello World"
       }
     ],
+    "configuration": {
+      "title": "Side Launcher",
+      "properties": {
+        "sideLauncher.tasks": {
+          "type": "array",
+          "default": [],
+          "description": "Custom task definitions for Side Launcher",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "description": "Display name for the task"
+              },
+              "type": {
+                "type": "string",
+                "default": "shell",
+                "enum": ["shell"],
+                "description": "Task type (currently only 'shell' is supported)"
+              },
+              "command": {
+                "type": "string",
+                "description": "Command to execute"
+              }
+            },
+            "required": ["label", "command"],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
     "viewsContainers": {
       "activitybar": [
         {
@@ -31,7 +62,7 @@
       "sideLauncherContainer": [
         {
           "id": "sideLauncher",
-          "name": "Launcher",
+          "name": "",
           "type": "webview",
           "when": "true"
         }
