@@ -17,7 +17,26 @@
         "command": "side-launcher.helloWorld",
         "title": "Hello World"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "sideLauncherContainer",
+          "title": "Side Launcher",
+          "icon": "./icon.png"
+        }
+      ]
+    },
+    "views": {
+      "sideLauncherContainer": [
+        {
+          "id": "sideLauncher",
+          "name": "Launcher",
+          "type": "webview",
+          "when": "true"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
