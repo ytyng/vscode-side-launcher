@@ -107,9 +107,37 @@ type は省略可能で、デフォルトは shell です。
     try {
       // ワークスペースルートパスを取得
       const workspaceFolders = vscode.workspace.workspaceFolders;
-      const workspaceRoot = workspaceFolders && workspaceFolders.length > 0
-        ? workspaceFolders[0].uri.fsPath
-        : process.cwd();
+      console.log("Workspace folders:", workspaceFolders);
+      
+      let workspaceRoot: string;
+      if (workspaceFolders && workspaceFolders.length > 0) {
+        workspaceRoot = workspaceFolders[0].uri.fsPath;
+        console.log("Using workspace root from VSCode:", workspaceRoot);
+      } else {
+        // フォールバック: 複数の方法でワークスペースを推定
+        const extensionPath = this._extensionUri.fsPath;
+        console.log("Extension path:", extensionPath);
+        
+        let currentDir = process.cwd();
+        console.log("Current working directory:", currentDir);
+        
+        // VSCode でプロジェクトが開かれていない場合、開発者コンソールから実行されている可能性
+        // その場合は拡張機能開発中のプロジェクトパスを使用
+        if (currentDir === '/' || currentDir.includes('vscode-server')) {
+          // VSCode Server や Remote 環境の場合の特別処理
+          const possibleProjectPath = '/Users/ytyng/workspace/vscode-side-launcher';
+          if (fs.existsSync(possibleProjectPath)) {
+            workspaceRoot = possibleProjectPath;
+            console.log("Using development project path:", workspaceRoot);
+          } else {
+            workspaceRoot = currentDir;
+            console.log("Fallback to current directory:", workspaceRoot);
+          }
+        } else {
+          workspaceRoot = currentDir;
+          console.log("Using current working directory as workspace root:", workspaceRoot);
+        }
+      }
 
       // 環境変数を設定
       const env = {
@@ -117,6 +145,11 @@ type は省略可能で、デフォルトは shell です。
         VSCODE_WORKSPACE_ROOT: workspaceRoot,
         WORKSPACE_ROOT: workspaceRoot, // 短縮版
       };
+
+      console.log("Environment variables set:", { 
+        VSCODE_WORKSPACE_ROOT: env.VSCODE_WORKSPACE_ROOT,
+        WORKSPACE_ROOT: env.WORKSPACE_ROOT 
+      });
 
       cp.exec(command, { env, cwd: workspaceRoot }, (error, stdout, stderr) => {
         const output = {
