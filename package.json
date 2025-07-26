@@ -23,7 +23,7 @@
         {
           "id": "sideLauncherContainer",
           "title": "Side Launcher",
-          "icon": "./icon.png"
+          "icon": "./icon.svg"
         }
       ]
     },

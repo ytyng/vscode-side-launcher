@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Side Launcher</title>
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+		body {
+			font-family: var(--vscode-font-family);
+			font-size: var(--vscode-font-size);
+			font-weight: var(--vscode-font-weight);
+			color: var(--vscode-foreground);
+			background-color: var(--vscode-editor-background);
+			padding: 10px;
+			margin: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			height: 100vh;
+			overflow: hidden;
+		}
+		.button-group {
+			flex-grow: 1;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			margin-bottom: 20px;
+			overflow-y: auto;
+		}
+		button {
+			background-color: color-mix(in srgb, var(--vscode-button-background) 10%, transparent);
+			color: var(--vscode-button-foreground);
+			border: none;
+			border-radius: 2px;
+			padding: 8px 12px;
+			cursor: pointer;
+			font-size: 13px;
+			transition: all 0.2s;
+			text-align: left;
+		}
+		button:hover {
+			background-color: color-mix(in srgb, var(--vscode-button-hoverBackground) 20%, transparent);
+		}
+		button:active {
+			transform: translateY(1px);
+		}
+		.log-area {
+			border-top: 1px solid var(--vscode-panel-border);
+			padding-top: 15px;
+		}
+		.log-title {
+			font-weight: bold;
+			margin-bottom: 10px;
+			color: var(--vscode-titleBar-activeForeground);
+		}
+		.log-container {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			height: 33vh;
+			overflow-y: auto;
+		}
+		.log-entry {
+			margin-bottom: 12px;
+			padding: 8px;
+			/* background-color: var(--vscode-editor-selectionBackground); */
+			background-color: rgba(255, 255, 255, 0.05);
+			border-radius: 3px;
+			font-family: var(--vscode-editor-font-family);
+			font-size: 12px;
+		}
+		.log-command {
+			font-weight: bold;
+			color: var(--vscode-terminal-ansiGreen);
+			margin-bottom: 4px;
+		}
+		.log-stdout {
+			color: var(--vscode-terminal-ansiWhite);
+			white-space: pre-wrap;
+		}
+		.log-stderr {
+			color: var(--vscode-terminal-ansiRed);
+			white-space: pre-wrap;
+		}
+		.log-error {
+			color: var(--vscode-errorForeground);
+			white-space: pre-wrap;
+		}
+	</style>
+</head>
+<body>
+	<div class="button-group">
+		<button onclick="runCommand('env')">📝 Environment Variables</button>
+		<button onclick="runCommand('date')">🕒 Current Date</button>
+		<button onclick="runCommand('pwd')">📂 Current Directory</button>
+		<button onclick="runCommand('whoami')">👤 Current User</button>
+		<button onclick="runCommand('uptime')">⏱️ System Uptime</button>
+		<button onclick="runCommand('df -h')">💾 Disk Usage</button>
+	</div>
+
+	<div class="log-area">
+		<div class="log-title">Command Output</div>
+		<div id="logContainer" class="log-container"></div>
+	</div>
+
+	<script>
+		const vscode = acquireVsCodeApi();
+
+		function runCommand(command) {
+			vscode.postMessage({
+				type: 'runCommand',
+				command: command
+			});
+		}
+
+		window.addEventListener('message', event => {
+			const message = event.data;
+			switch (message.type) {
+				case 'commandOutput':
+					addLogEntry(message.output);
+					break;
+			}
+		});
+
+		function addLogEntry(output) {
+			const logContainer = document.getElementById('logContainer');
+			const logArea = logContainer.parentElement;
+			const logEntry = document.createElement('div');
+			logEntry.className = 'log-entry';
+
+			let html = '<div class="log-command">$ ' + output.command + '</div>';
+
+			if (output.stdout) {
+				html += '<div class="log-stdout">' + escapeHtml(output.stdout) + '</div>';
+			}
+
+			if (output.stderr) {
+				html += '<div class="log-stderr">' + escapeHtml(output.stderr) + '</div>';
+			}
+
+			if (output.error) {
+				html += '<div class="log-error">Error: ' + escapeHtml(output.error) + '</div>';
+			}
+
+			logEntry.innerHTML = html;
+			logContainer.appendChild(logEntry);
+
+			// DOM更新後に新しいエントリの位置までスクロール
+			setTimeout(() => {
+				if (logArea) {
+					logEntry.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				}
+			}, 50);
+		}
+
+		function escapeHtml(text) {
+			const div = document.createElement('div');
+			div.textContent = text;
+			return div.innerHTML;
+		}
+	</script>
+</body>
+</html>
