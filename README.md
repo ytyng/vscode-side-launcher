@@ -1,71 +1,110 @@
-# side-launcher README
+# Side Launcher
 
-This is the README for your extension "side-launcher". After writing up a brief description, we recommend including the following sections.
+VSCode のサイドバーにコマンドランチャーを追加する拡張機能です。よく使うコマンドを簡単に実行できます。
 
-## Features
+## 機能
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **サイドバーランチャー**: VSCode のサイドバーにコマンド実行ボタンを表示
+- **カスタムコマンド設定**: VSCode settings または外部 JSON ファイルでコマンドを定義
+- **ワークスペース連携**: `$VSCODE_WORKSPACE_ROOT` や `$WORKSPACE_ROOT` 環境変数でプロジェクトパスを取得
+- **リアルタイム出力**: コマンドの実行結果をリアルタイムで表示
+- **エラーデバッグ**: スタックトレース表示でエラー原因を特定
 
-For example if there is an image subfolder under your extension project workspace:
+## コマンド設定
 
-\!\[feature X\]\(images/feature-x.png\)
+### VSCode Settings
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+`settings.json` に以下のように設定：
 
-## Requirements
+```json
+{
+  "sideLauncher.tasks": [
+    {
+      "label": "テストを実行",
+      "command": "cd $WORKSPACE_ROOT && npm test"
+    },
+    {
+      "label": "ビルド",
+      "command": "cd $WORKSPACE_ROOT && npm run build"
+    }
+  ]
+}
+```
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+### 外部 JSON ファイル
 
-## Extension Settings
+`${HOME}/.config/vscode-side-launcher/tasks.json` にも設定可能：
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+```json
+[
+  {
+    "label": "Git Status",
+    "type": "shell",
+    "command": "cd $VSCODE_WORKSPACE_ROOT && git status"
+  },
+  {
+    "label": "プロジェクト情報",
+    "command": "ls -la $WORKSPACE_ROOT"
+  }
+]
+```
 
-For example:
+## 環境変数
 
-This extension contributes the following settings:
+コマンド内で以下の環境変数が利用可能：
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- `$VSCODE_WORKSPACE_ROOT`: VSCode で開いているワークスペースのルートパス
+- `$WORKSPACE_ROOT`: 上記の短縮版
 
-## Known Issues
+## 設定項目
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+### `sideLauncher.tasks`
 
-## Release Notes
+タスク定義の配列。各タスクは以下の項目を持ちます：
 
-Users appreciate release notes as you update your extension.
+- `label` (必須): コマンドの表示名
+- `command` (必須): 実行するコマンド
+- `type` (省略可能): コマンドタイプ（現在は `shell` のみサポート、デフォルト値）
 
-### 1.0.0
+## インストール
 
-Initial release of ...
+1. このリポジトリをクローン
+2. `npm install` で依存関係をインストール
+3. `npm run compile` でコンパイル
+4. F5 で拡張機能をデバッグ実行
 
-### 1.0.1
+## 開発
 
-Fixed issue #.
+### バージョン管理
 
-### 1.1.0
+```bash
+npm run update-version
+```
 
-Added features X, Y, and Z.
+Git のコミット数を基にバージョン番号を自動更新します。
 
----
+### ビルド
 
-## Following extension guidelines
+```bash
+npm run compile
+```
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+### テスト
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+```bash
+npm test
+```
 
-## Working with Markdown
+## リリースノート
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+### 0.1.x
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+- VSCode settings と外部 JSON ファイルからのタスク定義読み込み機能
+- ワークスペースルートパス用環境変数の追加
+- エラー時のスタックトレース表示機能
+- HTML/TS の分離とボタンの動的生成
+- バージョン管理システムの導入
 
-## For more information
+## ライセンス
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+MIT License
