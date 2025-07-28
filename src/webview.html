@@ -104,6 +104,35 @@
       color: var(--vscode-errorForeground);
       white-space: pre-wrap;
     }
+
+    .reload-button {
+      position: fixed;
+      bottom: 8px;
+      right: 8px;
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      background-color: transparent;
+    }
+
+    .reload-button:hover {
+      background-color: color-mix(in srgb, var(--vscode-button-hoverBackground) 20%, transparent);
+    }
+
+    .reload-button:active {
+      transform: scale(0.95);
+    }
+
+    .reload-button svg {
+      width: 13px;
+      height: 13px;
+      fill: color-mix(in srgb, var(--vscode-foreground) 70%, transparent);
+    }
   </style>
 </head>
 
@@ -116,6 +145,12 @@
     <div class="log-title">Command Output</div>
     <div id="logContainer" class="log-container"></div>
   </div>
+
+  <button class="reload-button" onclick="reloadTasks()" title="Reload tasks">
+    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.5 2.5A7 7 0 0 1 8 15a7 7 0 0 1-5.5-2.7l1.1-1.1A5.5 5.5 0 0 0 8 13.5a5.5 5.5 0 0 0 5.5-5.5 5.5 5.5 0 0 0-5.5-5.5 5.5 5.5 0 0 0-4.4 2.2L5 6H1V2l1.3 1.3A7 7 0 0 1 8 1a7 7 0 0 1 5.5 1.5z"/>
+    </svg>
+  </button>
 
   <script>
     const vscode = acquireVsCodeApi();
@@ -148,11 +183,21 @@
       });
     }
 
+    function reloadTasks() {
+      vscode.postMessage({
+        type: 'reloadTasks'
+      });
+    }
+
     window.addEventListener('message', event => {
       const message = event.data;
       switch (message.type) {
         case 'commandOutput':
           addLogEntry(message.output);
+          break;
+        case 'tasksUpdated':
+          window.tasksData = message.tasks;
+          generateButtons();
           break;
       }
     });

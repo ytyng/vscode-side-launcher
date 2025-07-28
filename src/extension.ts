@@ -96,9 +96,20 @@ type は省略可能で、デフォルトは shell です。
           case "runCommand":
             this._runCommand(message.command);
             break;
+          case "reloadTasks":
+            this._reloadTasks();
+            break;
         }
       },
     );
+  }
+
+  private _reloadTasks() {
+    const tasks = this._getTaskDefinitions();
+    this._view?.webview.postMessage({
+      type: "tasksUpdated",
+      tasks: tasks,
+    });
   }
 
   private _runCommand(command: string) {
