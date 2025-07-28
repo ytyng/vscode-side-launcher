@@ -121,22 +121,13 @@ type は省略可能で、デフォルトは shell です。
         let currentDir = process.cwd();
         console.log("Current working directory:", currentDir);
         
-        // VSCode でプロジェクトが開かれていない場合、開発者コンソールから実行されている可能性
-        // その場合は拡張機能開発中のプロジェクトパスを使用
+        // VSCode でプロジェクトが開かれていない場合の警告
         if (currentDir === '/' || currentDir.includes('vscode-server')) {
-          // VSCode Server や Remote 環境の場合の特別処理
-          const possibleProjectPath = '/Users/ytyng/workspace/vscode-side-launcher';
-          if (fs.existsSync(possibleProjectPath)) {
-            workspaceRoot = possibleProjectPath;
-            console.log("Using development project path:", workspaceRoot);
-          } else {
-            workspaceRoot = currentDir;
-            console.log("Fallback to current directory:", workspaceRoot);
-          }
-        } else {
-          workspaceRoot = currentDir;
-          console.log("Using current working directory as workspace root:", workspaceRoot);
+          console.log("警告: VSCode Server または Remote 環境で実行されています。ワークスペースが正しく検出されない可能性があります。");
         }
+        
+        workspaceRoot = currentDir;
+        console.log("Using current working directory as workspace root:", workspaceRoot);
       }
 
       // 環境変数を設定
