@@ -59,15 +59,21 @@ class LauncherViewProvider implements vscode.WebviewViewProvider {
   }
 ]
 
-type は省略可能で、デフォルトは shell です。
+type は省略可能で、以下が使用できます:
+- shell (デフォルト): child_process で実行
+- shellOnVSCode: VSCode のターミナルで実行
 
 コマンド内では以下の環境変数が利用可能です:
 - \\$VSCODE_WORKSPACE_ROOT: VSCode で開いているワークスペースのルートパス
 - \\$WORKSPACE_ROOT: 上記の短縮版
+- \\$CURRENT_FILE_ABSOLUTE_PATH: 現在開いているファイルの絶対パス
+- \\$CURRENT_FILE_RELATIVE_PATH: 現在開いているファイルの相対パス
 
 使用例:
 - cd \\$WORKSPACE_ROOT && npm test
-- ls -la \\$VSCODE_WORKSPACE_ROOT/src"`,
+- ls -la \\$VSCODE_WORKSPACE_ROOT/src
+- echo \\$CURRENT_FILE_ABSOLUTE_PATH
+- git add \\$CURRENT_FILE_RELATIVE_PATH"`,
       });
     }
 
@@ -94,7 +100,7 @@ type は省略可能で、デフォルトは shell です。
       (message) => {
         switch (message.type) {
           case "runCommand":
-            this._runCommand(message.command);
+            this._runCommand(message.command, message.taskType);
             break;
           case "reloadTasks":
             this._reloadTasks();
@@ -112,8 +118,8 @@ type は省略可能で、デフォルトは shell です。
     });
   }
 
-  private _runCommand(command: string) {
-    console.log("Running command:", command);
+  private _runCommand(command: string, type?: string) {
+    console.log("Running command:", command, "with type:", type);
 
     try {
       // ワークスペースルートパスを取得
@@ -141,34 +147,78 @@ type は省略可能で、デフォルトは shell です。
         console.log("Using current working directory as workspace root:", workspaceRoot);
       }
 
+      // 現在開いているファイルのパス情報を取得
+      const activeEditor = vscode.window.activeTextEditor;
+      let currentFileAbsolutePath = '';
+      let currentFileRelativePath = '';
+      
+      if (activeEditor) {
+        currentFileAbsolutePath = activeEditor.document.uri.fsPath;
+        // ワークスペースルートからの相対パスを計算
+        if (currentFileAbsolutePath.startsWith(workspaceRoot)) {
+          currentFileRelativePath = path.relative(workspaceRoot, currentFileAbsolutePath);
+        } else {
+          currentFileRelativePath = currentFileAbsolutePath;
+        }
+      }
+
       // 環境変数を設定
       const env = {
         ...process.env,
         VSCODE_WORKSPACE_ROOT: workspaceRoot,
         WORKSPACE_ROOT: workspaceRoot, // 短縮版
+        CURRENT_FILE_ABSOLUTE_PATH: currentFileAbsolutePath,
+        CURRENT_FILE_RELATIVE_PATH: currentFileRelativePath,
       };
 
       console.log("Environment variables set:", { 
         VSCODE_WORKSPACE_ROOT: env.VSCODE_WORKSPACE_ROOT,
-        WORKSPACE_ROOT: env.WORKSPACE_ROOT 
+        WORKSPACE_ROOT: env.WORKSPACE_ROOT,
+        CURRENT_FILE_ABSOLUTE_PATH: env.CURRENT_FILE_ABSOLUTE_PATH,
+        CURRENT_FILE_RELATIVE_PATH: env.CURRENT_FILE_RELATIVE_PATH
       });
 
-      cp.exec(command, { env, cwd: workspaceRoot }, (error, stdout, stderr) => {
-        const output = {
-          command: command,
-          stdout: stdout,
-          stderr: stderr,
-          error: error?.message,
-          stack: error?.stack,
-        };
-
-        console.log("Command output:", output);
-
+      // タイプに応じて実行方法を変更
+      if (type === 'shellOnVSCode') {
+        // VSCode のターミナルで実行
+        const terminal = vscode.window.createTerminal({
+          name: 'Side Launcher',
+          cwd: workspaceRoot,
+          env: env
+        });
+        terminal.show();
+        terminal.sendText(command);
+        
+        // VSCode ターミナルでの実行の場合、出力は直接取得できないため通知メッセージを送信
         this._view?.webview.postMessage({
           type: "commandOutput",
-          output: output,
+          output: {
+            command: command,
+            stdout: `コマンドをVSCodeターミナルで実行しました: ${command}`,
+            stderr: "",
+            error: null,
+            stack: null,
+          },
         });
-      });
+      } else {
+        // 従来通りの child_process での実行
+        cp.exec(command, { env, cwd: workspaceRoot }, (error, stdout, stderr) => {
+          const output = {
+            command: command,
+            stdout: stdout,
+            stderr: stderr,
+            error: error?.message,
+            stack: error?.stack,
+          };
+
+          console.log("Command output:", output);
+
+          this._view?.webview.postMessage({
+            type: "commandOutput",
+            output: output,
+          });
+        });
+      }
     } catch (exception) {
       // exec の呼び出し自体でエラーが発生した場合
       const output = {

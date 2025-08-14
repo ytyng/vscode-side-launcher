@@ -171,15 +171,16 @@
       tasks.forEach(task => {
         const button = document.createElement('button');
         button.textContent = task.label;
-        button.onclick = () => runCommand(task.command);
+        button.onclick = () => runCommand(task.command, task.type);
         buttonGroup.appendChild(button);
       });
     }
 
-    function runCommand(command) {
+    function runCommand(command, taskType) {
       vscode.postMessage({
         type: 'runCommand',
-        command: command
+        command: command,
+        taskType: taskType
       });
     }
 
