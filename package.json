@@ -36,7 +36,7 @@
                 "type": "string",
                 "default": "shell",
                 "enum": [
-                  "shell"
+                  "shell", "shellOnVSCode"
                 ],
                 "description": "Task type (currently only 'shell' is supported)"
               },
