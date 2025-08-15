@@ -2,7 +2,7 @@
   "name": "side-launcher",
   "displayName": "Side Launcher",
   "description": "Launchier in sidebar",
-  "version": "0.1.13",
+  "version": "0.1.15",
   "engines": {
     "vscode": "^1.102.0"
   },
@@ -36,7 +36,8 @@
                 "type": "string",
                 "default": "shell",
                 "enum": [
-                  "shell", "shellOnVSCode"
+                  "shell",
+                  "shellOnVSCode"
                 ],
                 "description": "Task type (currently only 'shell' is supported)"
               },
