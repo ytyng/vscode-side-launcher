@@ -21,11 +21,35 @@ class LauncherViewProvider implements vscode.WebviewViewProvider {
 
   private _getTaskDefinitions(): TaskDefinition[] {
     const tasks: TaskDefinition[] = [];
+    const addedCommands = new Set<string>(); // 重複防止用
 
-    // VSCode settings から読み込み
+    // VSCode settings から読み込み (ワークスペース設定優先)
     const config = vscode.workspace.getConfiguration("sideLauncher");
     const settingsTasks = config.get<TaskDefinition[]>("tasks", []);
-    tasks.push(...settingsTasks);
+    for (const task of settingsTasks) {
+      const key = `${task.label}:${task.command}`;
+      if (!addedCommands.has(key)) {
+        tasks.push(task);
+        addedCommands.add(key);
+      }
+    }
+
+    // 各ワークスペースフォルダーの設定も読み込み
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders) {
+      for (const folder of workspaceFolders) {
+        // 各フォルダーの設定を取得
+        const folderConfig = vscode.workspace.getConfiguration("sideLauncher", folder.uri);
+        const folderTasks = folderConfig.get<TaskDefinition[]>("tasks", []);
+        for (const task of folderTasks) {
+          const key = `${task.label}:${task.command}`;
+          if (!addedCommands.has(key)) {
+            tasks.push(task);
+            addedCommands.add(key);
+          }
+        }
+      }
+    }
 
     // 外部 JSON ファイルから読み込み
     const configPath = path.join(
@@ -38,7 +62,13 @@ class LauncherViewProvider implements vscode.WebviewViewProvider {
       if (fs.existsSync(configPath)) {
         const jsonContent = fs.readFileSync(configPath, "utf8");
         const jsonTasks = JSON.parse(jsonContent) as TaskDefinition[];
-        tasks.push(...jsonTasks);
+        for (const task of jsonTasks) {
+          const key = `${task.label}:${task.command}`;
+          if (!addedCommands.has(key)) {
+            tasks.push(task);
+            addedCommands.add(key);
+          }
+        }
       }
     } catch (error) {
       console.error("JSON設定ファイルの読み込みでエラー:", error);
