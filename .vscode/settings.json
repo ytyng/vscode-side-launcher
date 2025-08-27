@@ -28,5 +28,12 @@
   "[css]": {
     "editor.insertSpaces": true,
     "editor.tabSize": 2
-  }
+  },
+  "sideLauncher.tasks": [
+    {
+      "label": "settings.json 検証用タスク",
+      "type": "shellOnVSCode",
+      "command": "echo \"Hello, ${VSCODE_WORKSPACE_ROOT}\""
+    }
+  ]
 }
