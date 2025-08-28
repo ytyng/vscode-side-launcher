@@ -2,7 +2,7 @@
   "name": "side-launcher",
   "displayName": "Side Launcher",
   "description": "Launchier in sidebar",
-  "version": "0.1.17",
+  "version": "0.1.21",
   "engines": {
     "vscode": "^1.102.0"
   },
