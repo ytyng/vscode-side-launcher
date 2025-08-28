@@ -2,13 +2,7 @@ import * as vscode from "vscode";
 import * as cp from "child_process";
 import * as fs from "fs";
 import * as path from "path";
-import * as os from "os";
-
-interface TaskDefinition {
-  label: string;
-  type?: string;
-  command: string;
-}
+import { ConfigurationLoader, TaskDefinition } from './configurationLoader';
 
 class LauncherViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "sideLauncher";
@@ -19,98 +13,11 @@ class LauncherViewProvider implements vscode.WebviewViewProvider {
     private readonly _extensionUri: vscode.Uri,
   ) {}
 
-  private _getTaskDefinitions(): TaskDefinition[] {
-    const tasks: TaskDefinition[] = [];
-    const addedCommands = new Set<string>(); // 重複防止用
-
-    // VSCode settings から読み込み (ワークスペース設定優先)
-    const config = vscode.workspace.getConfiguration("sideLauncher");
-    const settingsTasks = config.get<TaskDefinition[]>("tasks", []);
-    for (const task of settingsTasks) {
-      const key = `${task.label}:${task.command}`;
-      if (!addedCommands.has(key)) {
-        tasks.push(task);
-        addedCommands.add(key);
-      }
-    }
-
-    // 各ワークスペースフォルダーの設定も読み込み
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (workspaceFolders) {
-      for (const folder of workspaceFolders) {
-        // 各フォルダーの設定を取得
-        const folderConfig = vscode.workspace.getConfiguration("sideLauncher", folder.uri);
-        const folderTasks = folderConfig.get<TaskDefinition[]>("tasks", []);
-        for (const task of folderTasks) {
-          const key = `${task.label}:${task.command}`;
-          if (!addedCommands.has(key)) {
-            tasks.push(task);
-            addedCommands.add(key);
-          }
-        }
-      }
-    }
-
-    // 外部 JSON ファイルから読み込み
-    const configPath = path.join(
-      os.homedir(),
-      ".config",
-      "vscode-side-launcher",
-      "tasks.json",
-    );
-    try {
-      if (fs.existsSync(configPath)) {
-        const jsonContent = fs.readFileSync(configPath, "utf8");
-        const jsonTasks = JSON.parse(jsonContent) as TaskDefinition[];
-        for (const task of jsonTasks) {
-          const key = `${task.label}:${task.command}`;
-          if (!addedCommands.has(key)) {
-            tasks.push(task);
-            addedCommands.add(key);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("JSON設定ファイルの読み込みでエラー:", error);
-    }
-
-    // 設定が無い場合のデフォルト説明コマンド
-    if (tasks.length === 0) {
-      tasks.push({
-        label: "説明を表示",
-        command:
-          `echo "VSCode の settings の sideLauncher.tasks もしくは ${configPath} に下記の設定を定義することで、カスタムコマンドを追加できます:
-
-[
-  {
-    \\"label\\": \\"コマンドの名前\\",
-    \\"type\\": \\"shell\\",
-    \\"command\\": \\"コマンドライン\\"
-  }
-]
-
-type は省略可能で、以下が使用できます:
-- shell (デフォルト): child_process で実行
-- shellOnVSCode: VSCode のターミナルで実行
-
-コマンド内では以下の環境変数が利用可能です:
-- \\$VSCODE_WORKSPACE_ROOT: VSCode で開いているワークスペースのルートパス
-- \\$WORKSPACE_ROOT: 上記の短縮版
-- \\$CURRENT_FILE_ABSOLUTE_PATH: 現在開いているファイルの絶対パス
-- \\$CURRENT_FILE_RELATIVE_PATH: 現在開いているファイルの相対パス
-
-使用例:
-- cd \\$WORKSPACE_ROOT && npm test
-- ls -la \\$VSCODE_WORKSPACE_ROOT/src
-- echo \\$CURRENT_FILE_ABSOLUTE_PATH
-- git add \\$CURRENT_FILE_RELATIVE_PATH"`,
-      });
-    }
-
-    return tasks;
+  private async _getTaskDefinitions(): Promise<TaskDefinition[]> {
+    return await ConfigurationLoader.loadTaskDefinitions();
   }
 
-  public resolveWebviewView(
+  public async resolveWebviewView(
     webviewView: vscode.WebviewView,
     context: vscode.WebviewViewResolveContext,
     _token: vscode.CancellationToken,
@@ -124,24 +31,24 @@ type は省略可能で、以下が使用できます:
       ],
     };
 
-    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+    webviewView.webview.html = await this._getHtmlForWebview(webviewView.webview);
 
     webviewView.webview.onDidReceiveMessage(
-      (message) => {
+      async (message) => {
         switch (message.type) {
           case "runCommand":
             this._runCommand(message.command, message.taskType);
             break;
           case "reloadTasks":
-            this._reloadTasks();
+            await this._reloadTasks();
             break;
         }
       },
     );
   }
 
-  private _reloadTasks() {
-    const tasks = this._getTaskDefinitions();
+  public async _reloadTasks() {
+    const tasks = await this._getTaskDefinitions();
     this._view?.webview.postMessage({
       type: "tasksUpdated",
       tasks: tasks,
@@ -272,7 +179,7 @@ type は省略可能で、以下が使用できます:
     }
   }
 
-  private _getHtmlForWebview(webview: vscode.Webview) {
+  private async _getHtmlForWebview(webview: vscode.Webview) {
     const htmlPath = path.join(
       this._extensionUri.fsPath,
       "src",
@@ -280,7 +187,7 @@ type は省略可能で、以下が使用できます:
     );
     let htmlContent = fs.readFileSync(htmlPath, "utf8");
 
-    const tasks = this._getTaskDefinitions();
+    const tasks = await this._getTaskDefinitions();
 
     // タスクデータを JSON として webview に渡す
     const tasksJson = JSON.stringify(tasks);
@@ -295,7 +202,7 @@ type は省略可能で、以下が使用できます:
   }
 }
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   console.log("Side Launcher extension is now active!");
 
   const provider = new LauncherViewProvider(context.extensionUri);
@@ -304,6 +211,23 @@ export function activate(context: vscode.ExtensionContext) {
       LauncherViewProvider.viewType,
       provider,
     ),
+  );
+
+  // 設定変更の監視を追加
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration(async (e) => {
+      if (e.affectsConfiguration('sideLauncher')) {
+        // 設定が変更されたらタスクを再読み込み
+        await provider._reloadTasks();
+      }
+    })
+  );
+
+  // ワークスペースファイルの変更を監視
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeWorkspaceFolders(async () => {
+      await provider._reloadTasks();
+    })
   );
 
   const disposable = vscode.commands.registerCommand(
