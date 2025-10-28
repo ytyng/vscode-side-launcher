@@ -16,8 +16,34 @@
       {
         "command": "side-launcher.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "side-launcher.help",
+        "title": "Show Help",
+        "category": "Side Launcher",
+        "icon": "$(question)"
+      },
+      {
+        "command": "side-launcher.reload",
+        "title": "Reload Tasks",
+        "category": "Side Launcher",
+        "icon": "$(refresh)"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "side-launcher.help",
+          "when": "view == sideLauncher",
+          "group": "navigation"
+        },
+        {
+          "command": "side-launcher.reload",
+          "when": "view == sideLauncher",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "title": "Side Launcher",
       "properties": {

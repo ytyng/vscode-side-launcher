@@ -39,9 +39,6 @@ class LauncherViewProvider implements vscode.WebviewViewProvider {
           case "runCommand":
             this._runCommand(message.command, message.taskType);
             break;
-          case "reloadTasks":
-            await this._reloadTasks();
-            break;
         }
       },
     );
@@ -53,6 +50,10 @@ class LauncherViewProvider implements vscode.WebviewViewProvider {
       type: "tasksUpdated",
       tasks: tasks,
     });
+  }
+
+  public showHelp() {
+    this._view?.webview.postMessage({ type: "showHelp" });
   }
 
   private _runCommand(command: string, type?: string) {
@@ -238,6 +239,20 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(disposable);
+
+  // Help コマンド
+  context.subscriptions.push(
+    vscode.commands.registerCommand("side-launcher.help", () => {
+      provider.showHelp();
+    })
+  );
+
+  // Reload コマンド
+  context.subscriptions.push(
+    vscode.commands.registerCommand("side-launcher.reload", async () => {
+      await provider._reloadTasks();
+    })
+  );
 }
 
 // This method is called when your extension is deactivated
