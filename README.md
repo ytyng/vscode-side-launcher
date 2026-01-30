@@ -1,38 +1,40 @@
 # Side Launcher
 
-VSCode のサイドバーにコマンドランチャーを追加する拡張機能です。よく使うコマンドを簡単に実行できます。
+A VSCode extension that adds a command launcher to the sidebar. Easily run your frequently used commands.
 
-## 機能
+![](./documents/images/flashcap-20260130-112603.png)
 
-- **サイドバーランチャー**: VSCode のサイドバーにコマンド実行ボタンを表示
-- **カスタムコマンド設定**: VSCode settings または外部 JSON ファイルでコマンドを定義
-- **実行方式の選択**: child_process または VSCode ターミナルでの実行を選択可能
-- **ワークスペース連携**: `$VSCODE_WORKSPACE_ROOT` や `$WORKSPACE_ROOT` 環境変数でプロジェクトパスを取得
-- **ファイル連携**: `$CURRENT_FILE_ABSOLUTE_PATH` や `$CURRENT_FILE_RELATIVE_PATH` で現在開いているファイル情報を取得
-- **リアルタイム出力**: コマンドの実行結果をリアルタイムで表示
-- **エラーデバッグ**: スタックトレース表示でエラー原因を特定
+## Features
 
-## コマンド設定
+- **Sidebar Launcher**: Display command execution buttons in the VSCode sidebar
+- **Custom Command Configuration**: Define commands via VSCode settings or an external JSON file
+- **Execution Mode Selection**: Choose between child_process or VSCode terminal execution
+- **Workspace Integration**: Access project paths using `$VSCODE_WORKSPACE_ROOT` and `$WORKSPACE_ROOT` environment variables
+- **File Integration**: Access current file info via `$CURRENT_FILE_ABSOLUTE_PATH` and `$CURRENT_FILE_RELATIVE_PATH`
+- **Real-time Output**: View command results in real time
+- **Error Debugging**: Identify error causes with stack trace display
+
+## Command Configuration
 
 ### VSCode Settings
 
-`settings.json` に以下のように設定：
+Add the following to your `settings.json`:
 
 ```json
 {
   "sideLauncher.tasks": [
     {
-      "label": "テストを実行",
+      "label": "Run Tests",
       "type": "shell",
       "command": "cd $WORKSPACE_ROOT && npm test"
     },
     {
-      "label": "ビルド (VSCodeターミナルで実行)",
+      "label": "Build (Run in VSCode Terminal)",
       "type": "shellOnVSCode",
       "command": "cd $WORKSPACE_ROOT && npm run build"
     },
     {
-      "label": "現在ファイルをGitに追加",
+      "label": "Git Add Current File",
       "type": "shellOnVSCode",
       "command": "git add $CURRENT_FILE_RELATIVE_PATH"
     }
@@ -40,92 +42,92 @@ VSCode のサイドバーにコマンドランチャーを追加する拡張機�
 }
 ```
 
-### 外部 JSON ファイル
+### External JSON File
 
-`${HOME}/.config/vscode-side-launcher/tasks.json` にも設定可能：
+You can also configure tasks in `${HOME}/.config/vscode-side-launcher/tasks.json`:
 
 ```json
 [
   {
-    "label": "Git Status (ターミナルで実行)",
+    "label": "Git Status (Run in Terminal)",
     "type": "shellOnVSCode",
     "command": "cd $VSCODE_WORKSPACE_ROOT && git status"
   },
   {
-    "label": "プロジェクト情報",
+    "label": "Project Info",
     "type": "shell",
     "command": "ls -la $WORKSPACE_ROOT"
   },
   {
-    "label": "現在ファイルのパスを表示",
+    "label": "Show Current File Path",
     "type": "shell",
-    "command": "echo \"絶対パス: $CURRENT_FILE_ABSOLUTE_PATH\" && echo \"相対パス: $CURRENT_FILE_RELATIVE_PATH\""
+    "command": "echo \"Absolute: $CURRENT_FILE_ABSOLUTE_PATH\" && echo \"Relative: $CURRENT_FILE_RELATIVE_PATH\""
   }
 ]
 ```
 
-## 環境変数
+## Environment Variables
 
-コマンド内で以下の環境変数が利用可能：
+The following environment variables are available in commands:
 
-- `$VSCODE_WORKSPACE_ROOT`: VSCode で開いているワークスペースのルートパス
-- `$WORKSPACE_ROOT`: 上記の短縮版
-- `$CURRENT_FILE_ABSOLUTE_PATH`: 現在開いているファイルの絶対パス
-- `$CURRENT_FILE_RELATIVE_PATH`: 現在開いているファイルのプロジェクトルートからの相対パス
+- `$VSCODE_WORKSPACE_ROOT`: Root path of the workspace opened in VSCode
+- `$WORKSPACE_ROOT`: Shorthand for the above
+- `$CURRENT_FILE_ABSOLUTE_PATH`: Absolute path of the currently open file
+- `$CURRENT_FILE_RELATIVE_PATH`: Relative path of the currently open file from the project root
 
-## 設定項目
+## Configuration
 
 ### `sideLauncher.tasks`
 
-タスク定義の配列。各タスクは以下の項目を持ちます：
+An array of task definitions. Each task has the following properties:
 
-- `label` (必須): コマンドの表示名
-- `command` (必須): 実行するコマンド
-- `type` (省略可能): コマンドタイプ
-  - `shell` (デフォルト): child_process で実行し、結果をサイドバーに表示
-  - `shellOnVSCode`: VSCode のターミナルで実行
+- `label` (required): Display name of the command
+- `command` (required): Command to execute
+- `type` (optional): Command type
+  - `shell` (default): Execute via child_process and display results in the sidebar
+  - `shellOnVSCode`: Execute in the VSCode terminal
 
-## インストール
+## Installation
 
-1. このリポジトリをクローン
-2. `npm install` で依存関係をインストール
-3. `npm run compile` でコンパイル
-4. F5 で拡張機能をデバッグ実行
+1. Clone this repository
+2. Run `npm install` to install dependencies
+3. Run `npm run compile` to compile
+4. Press F5 to launch the extension in debug mode
 
-## 開発
+## Development
 
-### バージョン管理
+### Version Management
 
 ```bash
 npm run update-version
 ```
 
-Git のコミット数を基にバージョン番号を自動更新します。
+Automatically updates the version number based on the Git commit count.
 
-### ビルド
+### Build
 
 ```bash
 npm run compile
 ```
 
-### テスト
+### Test
 
 ```bash
 npm test
 ```
 
-## リリースノート
+## Release Notes
 
 ### 0.1.x
 
-- VSCode settings と外部 JSON ファイルからのタスク定義読み込み機能
-- ワークスペースルートパス用環境変数の追加
-- エラー時のスタックトレース表示機能
-- HTML/TS の分離とボタンの動的生成
-- バージョン管理システムの導入
-- `shellOnVSCode` タイプによる VSCode ターミナルでのコマンド実行機能
-- 現在開いているファイル情報の環境変数 (`CURRENT_FILE_ABSOLUTE_PATH`, `CURRENT_FILE_RELATIVE_PATH`) 追加
+- Task definition loading from VSCode settings and external JSON files
+- Environment variables for workspace root path
+- Stack trace display on errors
+- Separated HTML/TS and dynamic button generation
+- Version management system
+- `shellOnVSCode` type for command execution in the VSCode terminal
+- Environment variables for current file info (`CURRENT_FILE_ABSOLUTE_PATH`, `CURRENT_FILE_RELATIVE_PATH`)
 
-## ライセンス
+## License
 
 MIT License
