@@ -231,15 +231,6 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  const disposable = vscode.commands.registerCommand(
-    "side-launcher.helloWorld",
-    () => {
-      vscode.window.showInformationMessage("Hello World from Side Launcher!");
-    },
-  );
-
-  context.subscriptions.push(disposable);
-
   // Help コマンド
   context.subscriptions.push(
     vscode.commands.registerCommand("side-launcher.help", () => {
