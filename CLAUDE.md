@@ -1,71 +1,71 @@
 # VSCode Side Launcher
 
-VSCode のサイドバーにコマンドランチャーを表示する拡張機能。
+An extension that shows a command launcher in the VSCode sidebar.
 
-## プロジェクト概要
+## Project Overview
 
-- **名前**: side-launcher
-- **種類**: VSCode 拡張機能
-- **言語**: TypeScript
-- **ビルドツール**: npm, tsc
-- **テスト**: npm test
-- **バージョン管理**: Git コミット数ベース (`npm run update-version`)
+- **Name**: side-launcher
+- **Type**: VSCode extension
+- **Language**: TypeScript
+- **Build tools**: npm, tsc
+- **Tests**: npm test
+- **Versioning**: Based on the Git commit count (`npm run update-version`)
 
-## アーキテクチャ
+## Architecture
 
-### ファイル構成
+### File structure
 
 ```
 ├── src/
-│   ├── extension.ts        # メイン拡張機能コード
-│   ├── webview.html        # サイドバー UI
-│   └── version.json        # バージョン情報
+│   ├── extension.ts        # Main extension code
+│   ├── webview.html        # Sidebar UI
+│   └── version.json        # Version information
 ├── scripts/
-│   └── update-version.js   # バージョン更新スクリプト
+│   └── update-version.js   # Version update script
 ├── .vscode/
-│   └── settings.json       # VSCode プロジェクト設定
-└── package.json            # 拡張機能設定とスクリプト
+│   └── settings.json       # VSCode project settings
+└── package.json            # Extension settings and scripts
 ```
 
-### 主要機能
+### Main features
 
-1. **タスク定義の読み込み**
+1. **Loading task definitions**
    - VSCode settings (`sideLauncher.tasks`)
-   - 外部 JSON ファイル (`~/.config/vscode-side-launcher/tasks.json`)
-   - 両方の設定をマージして表示
+   - External JSON file (`~/.config/vscode-side-launcher/tasks.json`)
+   - Both settings are merged and displayed
 
-2. **環境変数の提供**
-   - `$VSCODE_WORKSPACE_ROOT`: ワークスペースルートパス
-   - `$WORKSPACE_ROOT`: 短縮版
+2. **Providing environment variables**
+   - `$VSCODE_WORKSPACE_ROOT`: Workspace root path
+   - `$WORKSPACE_ROOT`: Short form
 
-3. **動的 UI 生成**
-   - 設定からボタンを動的に生成
-   - リアルタイムでコマンド出力を表示
+3. **Dynamic UI generation**
+   - Buttons are generated dynamically from the settings
+   - Command output is displayed in real time
 
-## 開発時の注意点
+## Notes for Development
 
-### コマンド実行
+### Commands
 
-- `npm run compile`: TypeScript コンパイル
-- `npm run update-version`: バージョン更新
-- `npm test`: テスト実行
-- F5 でデバッグ実行
+- `npm run compile`: Compile TypeScript
+- `npm run update-version`: Update the version
+- `npm test`: Run tests
+- Press F5 to run with debugging
 
-### 設定例
+### Configuration examples
 
 VSCode settings:
 ```json
 {
   "sideLauncher.tasks": [
     {
-      "label": "テスト実行",
+      "label": "Run tests",
       "command": "cd $WORKSPACE_ROOT && npm test"
     }
   ]
 }
 ```
 
-外部 JSON:
+External JSON:
 ```json
 [
   {
@@ -75,22 +75,22 @@ VSCode settings:
 ]
 ```
 
-### デバッグ
+### Debugging
 
-- VSCode Developer Tools でコンソールログを確認
-- コマンド実行時の詳細ログが出力される
-- エラー時はスタックトレースも表示
+- Check the console log in VSCode Developer Tools
+- Detailed logs are printed when commands run
+- Stack traces are also shown on errors
 
-## 技術仕様
+## Technical Specifications
 
 - **VSCode API**: webview, workspace, configuration
 - **Node.js API**: child_process, fs, path, os
-- **UI**: HTML + CSS (VSCode テーマ変数使用)
-- **設定**: JSON Schema で IntelliSense 対応
+- **UI**: HTML + CSS (using VSCode theme variables)
+- **Settings**: IntelliSense support via JSON Schema
 
-## 今後の拡張可能性
+## Possible Future Extensions
 
-- コマンドタイプの追加 (shell 以外)
-- UI のカスタマイズ機能
-- コマンド履歴機能
-- お気に入り機能
+- Additional command types (other than shell)
+- UI customization
+- Command history
+- Favorites
